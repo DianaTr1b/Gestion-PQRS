@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes - Sistema de Inventario{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Contenedor Principal estilo Talento */
+    .talento-panel {
+        background-color: #ffffff;
+        border-radius: 1rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    /* Línea azul lateral decorativa similar a la imagen */
+    .talento-panel::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 2rem;
+        bottom: 2rem;
+        width: 4px;
+        background-color: var(--ecl-primary, #0b71b1);
+        border-radius: 0 4px 4px 0;
+    }
+
+    /* Tarjetas Individuales */
+    .talento-card {
+        background-color: #ffffff;
+        border-radius: 1rem;
+        border: 1px solid #e5e7eb;
+        padding: 1.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.2s ease-in-out;
+    }
+    .talento-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        transform: translateY(-3px);
+        border-color: #d1d5db;
+    }
+
+    /* Caja de Icono de colores */
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #ffffff;
+        flex-shrink: 0;
+    }
+
+    /* Tipografía y Badges (Píldoras) */
+    .card-title-fw {
+        font-weight: 600;
+        color: #1f2937;
+        font-size: 1.2rem;
+    }
+    .card-desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        line-height: 1.5;
+        margin-top: 1.2rem;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+    .badge-soft-primary { background-color: #e0f2fe; color: #0284c7; }
+    .badge-soft-success { background-color: #dcfce7; color: #16a34a; }
+    .badge-soft-info { background-color: #cffafe; color: #0891b2; }
+    .badge-soft-warning { background-color: #fef3c7; color: #d97706; }
+    .badge-soft-danger { background-color: #fee2e2; color: #dc2626; }
+    .badge-soft-secondary { background-color: #f3f4f6; color: #4b5563; }
+
+    /* Botones de Acción */
+    .btn-talento-primary {
+        background-color: var(--ecl-primary, #0b71b1);
+        color: white;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: none;
+    }
+    .btn-talento-primary:hover { background-color: #095a8e; color: white; }
+    
+    .btn-talento-outline {
+        background-color: #ffffff;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+    .btn-talento-outline:hover { background-color: #f3f4f6; color: #1f2937; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    
+    <div class="talento-panel mb-4">
+        
+        <div class="d-flex align-items-center mb-5 ps-3">
+            <i class="bi bi-file-earmark-pdf fs-3 text-primary me-3"></i>
+            <div>
+                <h4 class="mb-0 card-title-fw">Informes PDF / Excel</h4>
+                <p class="text-muted small mb-0">Genera reportes detallados en formato PDF o Excel por módulo</p>
+            </div>
+        </div>
+
+        <div class="row g-4 ps-3">
+            
+            <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #3b82f6;">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Inventario</h5>
+                            <span class="badge badge-soft-primary rounded-pill px-3 fw-medium">General</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Listado completo de todos los elementos del inventario con sus características, estados y asignaciones actuales.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:elementos_lista' %}?exportar=excel" class="btn btn-talento-primary btn-sm px-3 flex-grow-1"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
+                        <a href="{% url 'inventario:elementos_lista' %}" class="btn btn-talento-outline btn-sm px-3"><i class="bi bi-list-ul me-1"></i> Ver lista</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #10b981;">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Movimientos</h5>
+                            <span class="badge badge-soft-success rounded-pill px-3 fw-medium">Historial</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Registro y seguimiento de todas las asignaciones, devoluciones, mantenimientos y bajas reportadas.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:movimientos_lista' %}?exportar=excel" class="btn btn-talento-primary btn-sm px-3 flex-grow-1"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
+                        <a href="{% url 'inventario:movimientos_lista' %}" class="btn btn-talento-outline btn-sm px-3"><i class="bi bi-list-ul me-1"></i> Ver lista</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #06b6d4;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Por Bodega</h5>
+                            <span class="badge badge-soft-info rounded-pill px-3 fw-medium">Agrupado</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Estado de los equipos clasificado y agrupado por cada bodega de almacenamiento o sucursal registrada.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:reporte_bodega' %}?exportar=pdf" class="btn btn-talento-primary btn-sm px-3 flex-grow-1"><i class="bi bi-file-earmark-pdf me-1"></i> Informe</a>
+                        <a href="{% url 'inventario:reporte_bodega' %}" class="btn btn-talento-outline btn-sm px-3"><i class="bi bi-list-ul me-1"></i> Ver lista</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #f59e0b;">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Por Usuario</h5>
+                            <span class="badge badge-soft-warning rounded-pill px-3 fw-medium">Asignaciones</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Informe consolidado con toda la información de elementos, licencias y equipos asignados a cada colaborador.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:reporte_usuarios' %}?exportar=pdf" class="btn btn-talento-primary btn-sm px-3 flex-grow-1"><i class="bi bi-file-earmark-pdf me-1"></i> Informe</a>
+                        <a href="{% url 'inventario:reporte_usuarios' %}" class="btn btn-talento-outline btn-sm px-3"><i class="bi bi-list-ul me-1"></i> Ver lista</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #8b5cf6;">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Categorías</h5>
+                            <span class="badge badge-soft-secondary rounded-pill px-3 fw-medium">Clasificación</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Inventario clasificado por categorías (Hardware, Software, Vehículos), mostrando el volumen de equipos.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:reporte_categoria' %}?exportar=pdf" class="btn btn-talento-primary btn-sm px-3 flex-grow-1"><i class="bi bi-file-earmark-pdf me-1"></i> Informe</a>
+                        <a href="{% url 'inventario:reporte_categoria' %}" class="btn btn-talento-outline btn-sm px-3"><i class="bi bi-list-ul me-1"></i> Ver lista</a>
+                    </div>
+                </div>
+            </div>
+
+           <div class="col-md-6 col-xl-4">
+                <div class="talento-card">
+                    <div class="d-flex align-items-start">
+                        <div class="icon-box me-3" style="background-color: #ef4444;">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title-fw mb-1">Garantías</h5>
+                            <span class="badge badge-soft-danger rounded-pill px-3 fw-medium">Vencimientos</span>
+                        </div>
+                    </div>
+                    <p class="card-desc">Control y seguimiento del estado de garantías de los equipos, identificando de forma rápida las próximas a vencer.</p>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'inventario:reporte_garantias' %}?exportar=pdf" class="btn btn-talento-primary btn-sm px-3 flex-grow-1">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Informe
+                        </a>
+                        <a href="{% url 'inventario:reporte_garantias' %}" class="btn btn-talento-outline btn-sm px-3">
+                            <i class="bi bi-list-ul me-1"></i> Ver lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

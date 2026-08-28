@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Breadcrumb -->
+    <nav class="page-breadcrumb mb-3 animate__animated animate__fadeIn">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}" class="breadcrumb-link text-decoration-none">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventario:elementos_lista' %}" class="breadcrumb-link text-decoration-none">Elementos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventario:elemento_detalle' elemento.id %}" class="breadcrumb-link text-decoration-none">Detalle</a></li>
+            <li class="breadcrumb-item active text-danger">Eliminar</li>
+        </ol>
+    </nav>
+
+    <!-- CARTA PRINCIPAL (CONTENEDOR PADRE) -->
+    <div class="page-card animate__animated animate__fadeIn shadow-sm" style="border-radius: 0.75rem; overflow: hidden; background: #fff;">
+        
+        <!-- CABECERA AZUL -->
+        <div class="page-header" style="background-color: var(--ecl-primary, #0b71b1); padding: 1.5rem 2rem;">
+            <div class="d-flex align-items-center">
+                <div class="page-icon text-white me-3 fs-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <h1 class="page-title text-white mb-1" style="font-size: 1.5rem; font-weight: 600;">Confirmar Eliminación</h1>
+                    <p class="page-subtitle text-white mb-0" style="opacity: 0.8; font-size: 0.9rem;">
+                        Estás a punto de eliminar un registro del sistema.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body p-4">
+            
+            {% if tiene_movimientos %}
+                <!-- SUB-CARTA: AVISO DE RESTRICCIÓN (No se puede eliminar) -->
+                <div class="content-card mb-4 border border-warning rounded shadow-sm bg-white">
+                    <div class="content-card-header d-flex align-items-center border-bottom border-warning p-3 bg-warning bg-opacity-10">
+                        <div class="content-card-icon text-warning me-2 fs-5"><i class="bi bi-shield-lock-fill"></i></div>
+                        <div>
+                            <h5 class="content-card-title mb-0 text-dark" style="font-weight: 600;">Acción Restringida</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card-body p-4 bg-white">
+                        <p class="text-dark mb-3">
+                            <strong>No se puede eliminar el equipo "{{ elemento.nombre }}"</strong>.
+                        </p>
+                        <p class="text-muted mb-4">
+                            El elemento tiene movimientos asociados en el historial. Por políticas de seguridad y auditoría del inventario, los registros con transacciones previas no pueden ser borrados de la base de datos.
+                        </p>
+                        
+                        <div class="p-3 bg-light rounded border border-info mb-4">
+                            <h6 class="text-info fw-bold mb-2"><i class="bi bi-lightbulb-fill me-2"></i>Alternativa recomendada:</h6>
+                            <p class="mb-0 text-muted small">
+                                En lugar de eliminar, puedes editar el elemento y cambiar su estado a <strong>"Baja"</strong> o <strong>"Inactivo"</strong>. Esto mantendrá la integridad del historial.
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'inventario:elemento_detalle' elemento.id %}" class="btn btn-primary shadow-sm px-4 py-2 fw-medium" style="border-radius: 0.5rem;">
+                                <i class="bi bi-arrow-left me-1"></i> Volver al Detalle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- SUB-CARTA: ADVERTENCIA Y CONFIRMACIÓN DE ELIMINACIÓN -->
+                <div class="content-card mb-4 border border-danger rounded shadow-sm bg-white">
+                    <div class="content-card-header d-flex align-items-center border-bottom border-danger p-3 bg-danger bg-opacity-10">
+                        <div class="content-card-icon text-danger me-2 fs-5"><i class="bi bi-trash-fill"></i></div>
+                        <div>
+                            <h5 class="content-card-title mb-0 text-danger" style="font-weight: 600;">¿Estás seguro de continuar?</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card-body p-4 bg-white">
+                        
+                        <!-- Resumen del Elemento -->
+                        <div class="bg-light p-3 rounded mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3">Detalles del Equipo:</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <span class="text-muted small text-uppercase fw-bold">Elemento:</span>
+                                    <p class="mb-2 fw-medium">{{ elemento.nombre }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-muted small text-uppercase fw-bold">Marca / Modelo:</span>
+                                    <p class="mb-2">{{ elemento.marca|default:"N/A" }} - {{ elemento.modelo|default:"N/A" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-muted small text-uppercase fw-bold">Serial:</span>
+                                    <p class="mb-0"><code>{{ elemento.serial|default:"N/A" }}</code></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <span class="text-muted small text-uppercase fw-bold">Categoría:</span>
+                                    <p class="mb-0">{{ elemento.categoria.nombre }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger shadow-sm border-0 border-start border-danger border-4 d-flex align-items-center mb-4" role="alert">
+                            <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+                            <div>
+                                Esta acción <strong>NO se puede deshacer</strong>. El elemento y toda su información técnica serán eliminados permanentemente del sistema.
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <form method="post" id="form-eliminar">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-end gap-3">
+                                <a href="{% url 'inventario:elemento_detalle' elemento.id %}" class="btn btn-light border shadow-sm px-4 py-2 fw-medium" style="border-radius: 0.5rem;">
+                                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger shadow px-4 py-2 fw-medium" style="border-radius: 0.5rem;" id="btn-eliminar">
+                                    <i class="bi bi-trash me-1"></i> Sí, Eliminar Definitivamente
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Pequeño script para evitar dobles clics al eliminar
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('form-eliminar');
+        if(form) {
+            form.addEventListener('submit', function() {
+                const btn = document.getElementById('btn-eliminar');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Eliminando...';
+            });
+        }
+    });
+</script>
+{% endblock extra_js %}

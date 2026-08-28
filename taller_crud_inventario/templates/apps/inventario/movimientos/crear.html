@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Estilos para que el formset se vea integrado */
+    .formset-row:hover { background-color: rgba(11, 113, 177, 0.02); }
+    .form-control, .form-select {
+        background-color: #f8fafc;
+        border: none;
+        border-bottom: 2px solid #e2e8f0;
+        border-radius: 0.25rem 0.25rem 0 0;
+        padding: 0.6rem 0.75rem;
+        transition: border-color 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #fff;
+        border-bottom-color: var(--ecl-primary);
+        box-shadow: none;
+    }
+</style>
+
+
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <nav class="page-breadcrumb mb-3 animate__animated animate__fadeIn">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}" class="breadcrumb-link text-decoration-none">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventario:movimientos_lista' %}" class="breadcrumb-link text-decoration-none">Movimientos</a></li>
+            <li class="breadcrumb-item active">Nuevo</li>
+        </ol>
+    </nav>
+
+    <div class="page-card animate__animated animate__fadeIn shadow-sm" style="border-radius: 0.75rem; overflow: hidden; background: #fff;">
+        
+        <div class="page-header d-flex justify-content-between align-items-center" style="background-color: var(--ecl-primary, #0b71b1); padding: 1.5rem 2rem;">
+            <div class="d-flex align-items-center">
+                <div class="page-icon text-white me-3 fs-2">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div>
+                    <h1 class="page-title text-white mb-1" style="font-size: 1.5rem; font-weight: 600;">Nuevo Movimiento de Inventario</h1>
+                    <p class="page-subtitle text-white mb-0" style="opacity: 0.8; font-size: 0.9rem;">
+                        Registra una transferencia o asignación de activos. Se notificará a los involucrados.
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="javascript:history.back()" class="btn btn-outline-light btn-sm fw-medium px-3 rounded-pill shadow-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Cancelar y Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="page-body p-4">
+            <form method="post" id="movimiento-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- SUB-CARTA: INFORMACIÓN GENERAL -->
+                <div class="content-card mb-4 border rounded shadow-sm bg-white">
+                    <div class="content-card-header d-flex align-items-center border-bottom p-3 bg-white">
+                        <div class="content-card-icon text-primary me-2 fs-5"><i class="bi bi-info-circle"></i></div>
+                        <div>
+                            <h5 class="content-card-title mb-0" style="font-weight: 600;">Datos del Movimiento</h5>
+                            <p class="content-card-subtitle text-muted mb-0" style="font-size: 0.85rem;">Define el tipo de operación y los involucrados.</p>
+                        </div>
+                    </div>
+                    <div class="content-card-body p-4 bg-white">
+                        <div class="row g-4">
+                            <!-- Alertas de errores globales -->
+                            <!-- REVELADOR DE ERRORES GLOBALES Y OCULTOS -->
+                            {% if form.errors or form.non_field_errors or formset.non_form_errors or formset.errors %}
+                                <div class="col-12">
+                                    <div class="alert alert-danger py-2 px-3 mb-0 small shadow-sm border-danger">
+                                        <strong class="text-danger"><i class="bi bi-exclamation-triangle"></i> Por favor corrija lo siguiente:</strong>
+                                        <ul class="mb-0 mt-1 text-danger">
+                                            {% if form.non_field_errors %}<li>{{ form.non_field_errors|striptags }}</li>{% endif %}
+                                            {% if formset.non_form_errors %}<li>{{ formset.non_form_errors|striptags }}</li>{% endif %}
+                                            {% for field in form %}
+                                                {% if field.errors %}
+                                                    <li><strong>{{ field.label }}:</strong> {{ field.errors|striptags }}</li>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% for f in formset %}
+                                                {% for field in f %}
+                                                    {% if field.errors %}
+                                                        <li><strong>Fila Elemento ({{ field.label }}):</strong> {{ field.errors|striptags }}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- CAMPOS FALTANTES EXIGIDOS POR EL BACKEND (Invisibles) -->
+                            <div class="d-none">
+                                {{ form.usuario_registro }}
+                                {{ form.estado_movimiento }}
+                                {{ f.cantidad }}
+                                {{ f.estado_elemento_antes }}
+                                {{ f.observaciones_elemento }}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Tipo de Movimiento</label>
+                                {{ form.tipo_movimiento }}
+                                {% if form.tipo_movimiento.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.tipo_movimiento.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Autorizado por</label>
+                                {{ form.usuario_autoriza }}
+                                {% if form.usuario_autoriza.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.usuario_autoriza.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Usuario Origen</label>
+                                {{ form.usuario_origen }}
+                                {% if form.usuario_origen.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.usuario_origen.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Usuario Destino</label>
+                                {{ form.usuario_destino }}
+                                {% if form.usuario_destino.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.usuario_destino.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Registrado por</label>
+                                {{ form.usuario_registro }}
+                                {% if form.usuario_registro.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.usuario_registro.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Estado Inicial</label>
+                                {{ form.estado_movimiento }}
+                                {% if form.estado_movimiento.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.estado_movimiento.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small fw-bold text-uppercase">Observaciones Generales</label>
+                                {{ form.observaciones }}
+                                {% if form.observaciones.errors %}<div class="text-danger small mt-1 fw-bold">{{ form.observaciones.errors|striptags }}</div>{% endif %}
+                            </div>
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-CARTA: ELEMENTOS (FORMSET) -->
+                <div class="content-card mb-4 border rounded shadow-sm bg-white">
+                    <div class="content-card-header d-flex align-items-center border-bottom p-3 bg-white">
+                        <div class="content-card-icon text-primary me-2 fs-5"><i class="bi bi-pc-display"></i></div>
+                        <div>
+                            <h5 class="content-card-title mb-0" style="font-weight: 600;">Elementos a Mover</h5>
+                            <p class="content-card-subtitle text-muted mb-0" style="font-size: 0.85rem;">Agrega los equipos específicos de este movimiento.</p>
+                        </div>
+                    </div>
+                    <div class="content-card-body p-0 bg-white">
+                        {{ formset.management_form }}
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Elemento</th>
+                                        <!-- Eliminamos el <th> de cantidad para que no ocupe espacio -->
+                                        <th>Estado del Elemento</th>
+                                        <th class="text-center pe-4" style="width: 80px;">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for f in formset %}
+                                    <tr class="formset-row">
+                                        <!-- CAMPOS OCULTOS DE SEGURIDAD -->
+                                        {% for hidden in f.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                        
+                                        <!-- MOSTRAR ERRORES "FANTASMAS" DEL FORMSET -->
+                                        {% if f.non_field_errors %}
+                                            <div class="text-danger small fw-bold px-2">{{ f.non_field_errors }}</div>
+                                        {% endif %}
+                                        
+                                        <!-- SOLUCIÓN: Campo cantidad oculto con CSS (no con comentarios) -->
+                                        <td class="d-none">
+                                            {{ f.cantidad }}
+                                        </td>
+                                        
+                                        <td class="ps-4">
+                                            {{ f.elemento }}
+                                            {% if f.elemento.errors %}<div class="text-danger small mt-1 fw-bold">{{ f.elemento.errors|striptags }}</div>{% endif %}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ f.estado_elemento_despues }}
+                                            {% if f.estado_elemento_despues.errors %}<div class="text-danger small mt-1 fw-bold">{{ f.estado_elemento_despues.errors|striptags }}</div>{% endif %}
+                                        </td>
+                                        <td class="text-center pe-4">
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Footer opcional de la tarjeta para botones de añadir -->
+                    <div class="card-footer bg-white border-top p-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill fw-medium px-3" id="add-form-row">
+                            <i class="bi bi-plus-circle me-1"></i> Añadir fila
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ACCIONES GLOBALES DEL FORMULARIO -->
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{% url 'inventario:movimientos_lista' %}" class="btn btn-light border shadow-sm px-4 py-2 fw-medium" style="border-radius: 0.5rem;">Cancelar</a>
+                    <button type="submit" class="btn btn-primary shadow px-4 py-2 fw-medium" style="border-radius: 0.5rem;">
+                        <i class="bi bi-save me-1"></i> Guardar y Notificar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Lógica de movimientos iniciada...");
+
+    // =======================================================
+    // 0. UNIFICAR ESTILOS DE TODOS LOS MENÚS AL CARGAR LA PÁGINA
+    // =======================================================
+    if (typeof jQuery !== 'undefined' && $.fn.select2) {
+        $('.formset-row select').each(function() {
+            let selectId = $(this).attr('id') || '';
+            
+            // Evitamos volver a inicializar si ya tiene Select2
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                if (selectId.includes('-elemento')) {
+                    $(this).select2({ width: '100%', placeholder: "Seleccione un elemento..." });
+                } else if (selectId.includes('estado')) {
+                    $(this).select2({ width: '100%', placeholder: "Seleccionar estado..." });
+                } else {
+                    $(this).select2({ width: '100%', placeholder: "Seleccione una opción..." });
+                }
+            }
+        });
+    }
+
+    // ==========================================
+    // 1. LÓGICA DEL FORMSET (Agregar/Eliminar Filas)
+    // ==========================================
+    const addBtn = document.getElementById('add-form-row');
+    const tbody = document.querySelector('table tbody');
+    const totalForms = document.querySelector('input[id$="-TOTAL_FORMS"]');
+    
+    if (addBtn && totalForms) {
+        const basePrefix = totalForms.id.replace('id_', '').replace('-TOTAL_FORMS', '');
+
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Previene que el botón intente enviar el formulario
+            
+            const currentFormCount = parseInt(totalForms.value);
+            
+            // Validación de Límite Máximo (10 Elementos)
+            if (currentFormCount >= 10) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Límite alcanzado',
+                    text: 'El sistema permite asignar un máximo de 10 elementos por acta de movimiento.',
+                    confirmButtonColor: 'var(--ecl-primary)'
+                });
+                return;
+            }
+
+            const rows = tbody.querySelectorAll('.formset-row');
+            const rowToClone = rows[rows.length - 1];
+            const newRow = rowToClone.cloneNode(true);
+
+            // Reemplaza todos los índices en los atributos de la fila nueva
+            const regex = new RegExp(`${basePrefix}-(\\d+)-`, 'g');
+            newRow.innerHTML = newRow.innerHTML.replace(regex, `${basePrefix}-${currentFormCount}-`);
+
+            // 🪄 MAGIA ANTI-ZOMBI: Limpieza de Select2
+            const select2Containers = newRow.querySelectorAll('.select2-container');
+            select2Containers.forEach(container => container.remove());
+
+            const selects = newRow.querySelectorAll('select');
+            selects.forEach(select => {
+                select.classList.remove('select2-hidden-accessible');
+                select.removeAttribute('data-select2-id');
+                select.removeAttribute('tabindex');
+                select.removeAttribute('aria-hidden');
+                
+                const options = select.querySelectorAll('option');
+                options.forEach(opt => opt.removeAttribute('data-select2-id'));
+                
+                select.value = ''; // Lo dejamos virgen
+            });
+
+            // Limpia los campos inputs de texto o número
+            const inputs = newRow.querySelectorAll('input:not([type=hidden]), textarea');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+
+            // Si hay campo de cantidad, asegurar que inicie en 1
+            const quantityInput = newRow.querySelector('input[type="number"]');
+            if (quantityInput) quantityInput.value = 1;
+
+            // Agregamos la fila limpia a la tabla
+            tbody.appendChild(newRow);
+            totalForms.value = currentFormCount + 1;
+            
+            attachDeleteEvents();
+
+            // 🔌 RECONECTAR SELECT2 EN LA FILA NUEVA
+            if (typeof jQuery !== 'undefined' && $.fn.select2) {
+                $(newRow).find('select').each(function() {
+                    let selectId = $(this).attr('id') || '';
+                    
+                    if (selectId.includes('-elemento')) {
+                        $(this).select2({ width: '100%', placeholder: "Seleccione un elemento..." });
+                    } else if (selectId.includes('estado')) {
+                        $(this).select2({ width: '100%', placeholder: "Seleccionar estado..." });
+                    } else {
+                        $(this).select2({ width: '100%', placeholder: "Seleccione una opción..." });
+                    }
+                });
+            }
+        }); // <-- ¡Estas eran las llaves que faltaban!
+    }
+
+    function attachDeleteEvents() {
+        const deleteBtns = document.querySelectorAll('.btn-outline-danger');
+        deleteBtns.forEach(btn => {
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function() {
+                const rows = tbody.querySelectorAll('.formset-row');
+                if (rows.length > 1) {
+                    this.closest('tr').remove();
+                    // Opcional: Podrías actualizar el TOTAL_FORMS aquí si tu backend lo requiere estricto
+                } else {
+                    Swal.fire('Atención', 'El movimiento debe tener al menos un elemento.', 'warning');
+                }
+            });
+        });
+    }
+    attachDeleteEvents();
+
+    // ==========================================
+    // 2. LÓGICA DE FILTRADO (Usuario -> Elementos) CON MEMORIA
+    // ==========================================
+    const origenSelect = document.getElementById('id_usuario_origen');
+    
+    function cargarElementosPorUsuario(usuarioId) {
+        const elementoSelects = document.querySelectorAll('select[id$="-elemento"]');
+        
+        if (!usuarioId) {
+            elementoSelects.forEach(select => select.innerHTML = '<option value="">---------</option>');
+            return;
+        }
+
+        console.log(" Consultando equipos en API para el usuario ID:", usuarioId);
+
+        const seleccionesPrevias = {};
+        elementoSelects.forEach(select => {
+            if (select.value) seleccionesPrevias[select.id] = select.value;
+        });
+
+        fetch(`/inventario/api/elementos-usuario/${usuarioId}/`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(" Equipos recibidos de la API:", data.elementos);
+                
+                elementoSelects.forEach(select => {
+                    select.innerHTML = '<option value="">---------</option>';
+                    if (data.elementos && data.elementos.length > 0) {
+                        data.elementos.forEach(el => {
+                            const option = document.createElement('option');
+                            option.value = el.id;
+                            option.textContent = `[ID:${el.id}] ${el.nombre} - ${el.marca} ${el.modelo} (${el.estado})`;
+                            
+                            if (seleccionesPrevias[select.id] && seleccionesPrevias[select.id] == el.id) {
+                                option.selected = true;
+                            }
+                            select.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "Este usuario no tiene equipos disponibles";
+                        select.appendChild(option);
+                    }
+                    
+                    // --- NUEVA LÍNEA PARA ACTIVAR EL BUSCADOR SELECT2 ---
+                    if (typeof jQuery !== 'undefined' && $.fn.select2) {
+                        $(select).select2({
+                            width: '100%',
+                            placeholder: "Seleccione un elemento..."
+                        });
+                        $(select).trigger('change');
+                    }
+                });
+            })
+            .catch(err => console.error("Error API:", err));
+    }
+
+    if (origenSelect) {
+        // En caso de que el origenSelect use Select2
+        if ($(origenSelect).hasClass("select2-hidden-accessible")) {
+            $(origenSelect).on('select2:select', function (e) {
+                cargarElementosPorUsuario(this.value);
+            });
+        } else {
+            origenSelect.addEventListener('change', function() {
+                cargarElementosPorUsuario(this.value);
+            });
+        }
+
+        if (origenSelect.value) {
+            cargarElementosPorUsuario(origenSelect.value);
+        }
+    }
+});
+</script>
+{% endblock extra_js %}

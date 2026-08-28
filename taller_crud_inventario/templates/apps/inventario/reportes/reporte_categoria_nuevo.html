@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte por Categoría - Sistema de Inventario{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos de Tabla tipo Talento ECL */
+    .talento-table thead th {
+        color: #6b7280; 
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid #e5e7eb;
+        background-color: #ffffff;
+        border-top: none;
+    }
+    .talento-table tbody td {
+        font-size: 0.875rem;
+        color: #374151;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    .talento-table tbody tr:hover { background-color: #f8fafc; }
+    
+    .filter-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 0.5rem; overflow: hidden;">
+        
+        <div class="p-4 d-flex justify-content-between align-items-center" style="background-color: var(--ecl-primary, #0b71b1);">
+            <div class="text-white d-flex align-items-center">
+                <i class="bi bi-tags fs-2 me-3 opacity-75"></i>
+                <div>
+                    <h4 class="mb-1 fw-bold">Reporte por Categoría</h4>
+                    <p class="mb-0 small" style="opacity: 0.85;">Inventario clasificado y filtrado por categorías de elementos.</p>
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'inventario:reportes' %}" class="btn btn-outline-light btn-sm fw-medium px-3 rounded-pill">
+                    <i class="bi bi-arrow-left me-1"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white border-bottom">
+            <form method="get">
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <label class="filter-label"><i class="bi bi-tag"></i> Categoría</label>
+                        <select name="categoria" class="form-select form-select-sm text-secondary">
+                            <option value="">Todas las categorías...</option>
+                            {% for cat in categorias_lista %}
+                            <option value="{{ cat.id }}" {% if categoria_filtro == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="filter-label"><i class="bi bi-ui-checks"></i> Estado</label>
+                        <select name="estado" class="form-select form-select-sm text-secondary">
+                            <option value="">Todos los estados</option>
+                            <option value="Disponible" {% if estado_filtro == 'Disponible' %}selected{% endif %}>Disponible</option>
+                            <option value="Asignado" {% if estado_filtro == 'Asignado' %}selected{% endif %}>Asignado</option>
+                            <option value="Mantenimiento" {% if estado_filtro == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                            <option value="Baja" {% if estado_filtro == 'Baja' %}selected{% endif %}>Baja</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="filter-label"><i class="bi bi-laptop"></i> Nombre de Elemento</label>
+                        <select name="nombre" class="form-select form-select-sm text-secondary">
+                            <option value="">Todos los elementos...</option>
+                            {% for ne in nombres_elementos %}
+                            <option value="{{ ne.id }}" {% if nombre_filtro == ne.id|stringformat:"s" %}selected{% endif %}>{{ ne.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="filter-label"><i class="bi bi-calendar-event"></i> Fecha Compra (Desde)</label>
+                        <input type="date" name="fecha_desde" class="form-control form-control-sm text-secondary" value="{{ fecha_compra_desde|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="filter-label"><i class="bi bi-calendar-event"></i> Fecha Compra (Hasta)</label>
+                        <input type="date" name="fecha_hasta" class="form-control form-control-sm text-secondary" value="{{ fecha_compra_hasta|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a href="{% url 'inventario:reporte_categoria' %}" class="btn btn-light border btn-sm text-secondary fw-medium px-3"><i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar</a>
+                    <button type="submit" name="exportar" value="excel" class="btn btn-outline-success btn-sm fw-medium px-3"><i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel</button>
+                    <button type="submit" name="exportar" value="pdf" class="btn btn-outline-danger btn-sm fw-medium px-3"><i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-medium px-4" style="background-color: var(--ecl-primary);"><i class="bi bi-funnel-fill me-1"></i> Filtrar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive bg-white">
+            {% if elementos %}
+            <table class="table talento-table mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Elemento</th>
+                        <th>Marca / Modelo</th>
+                        <th>Categoría</th>
+                        <th>Usuario Actual</th>
+                        <th>Bodega</th>
+                        <th class="text-center">Estado</th>
+                        <th class="pe-4 text-center">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for elemento in elementos %}
+                    <tr>
+                        <td class="ps-4 text-muted fw-medium">#{{ elemento.id }}</td>
+                        <td><span class="fw-semibold text-dark">{{ elemento.nombre }}</span></td>
+                        <td>{{ elemento.marca }} {{ elemento.modelo }}<br><small class="text-muted">S/N: {{ elemento.serial|default:"-" }}</small></td>
+                        <td>{{ elemento.categoria.nombre }}</td>
+                        <td>
+                            {% if elemento.usuario_actual %}
+                                <i class="bi bi-person text-primary me-1"></i>{{ elemento.usuario_actual.nombre }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if elemento.bodega_actual %}
+                                <i class="bi bi-building text-info me-1"></i>{{ elemento.bodega_actual.nombre }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if elemento.estado == 'Disponible' %}
+                                <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Disponible</span>
+                            {% elif elemento.estado == 'Asignado' %}
+                                <span class="text-primary small fw-bold"><i class="bi bi-person-fill me-1"></i>Asignado</span>
+                            {% elif elemento.estado == 'Mantenimiento' %}
+                                <span class="text-warning small fw-bold"><i class="bi bi-tools me-1"></i>Mantenimiento</span>
+                            {% elif elemento.estado == 'Baja' %}
+                                <span class="text-danger small fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Baja</span>
+                            {% else %}
+                                <span class="text-secondary small fw-bold">{{ elemento.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-center">
+                            <a href="{% url 'inventario:elemento_detalle' elemento.id %}" class="btn btn-light btn-sm border text-secondary" title="Ver Detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+           {% if elementos.has_other_pages %}
+            <div class="p-3 border-top d-flex justify-content-between align-items-center bg-white" style="border-radius: 0 0 0.5rem 0.5rem;">
+                <div class="text-muted small fw-medium">
+                    Página <strong>{{ elementos.number }}</strong> de <strong>{{ elementos.paginator.num_pages }}</strong>
+                </div>
+
+                <nav>
+                    <ul class="pagination pagination-sm mb-0 shadow-sm">
+                        
+                        <li class="page-item {% if not elementos.has_previous %}disabled{% endif %}">
+                            <a class="page-link text-secondary" href="{% if elementos.has_previous %}?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% else %}#{% endif %}" title="Primera Página">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item {% if not elementos.has_previous %}disabled{% endif %}">
+                            <a class="page-link text-secondary" href="{% if elementos.has_previous %}?page={{ elementos.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% else %}#{% endif %}" title="Página Anterior">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        {% for num in elementos.paginator.page_range %}
+                            {% if elementos.number == num %}
+                                <li class="page-item active"><span class="page-link bg-primary border-primary px-3">{{ num }}</span></li>
+                            {% elif num > elementos.number|add:'-3' and num < elementos.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link text-primary px-3" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {% if not elementos.has_next %}disabled{% endif %}">
+                            <a class="page-link text-secondary" href="{% if elementos.has_next %}?page={{ elementos.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% else %}#{% endif %}" title="Página Siguiente">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item {% if not elementos.has_next %}disabled{% endif %}">
+                            <a class="page-link text-secondary" href="{% if elementos.has_next %}?page={{ elementos.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}{% else %}#{% endif %}" title="Última Página">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-tags text-muted opacity-50" style="font-size: 3rem;"></i>
+                <p class="mt-3 text-muted">No se encontraron elementos con los filtros aplicados.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

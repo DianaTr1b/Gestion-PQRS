@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Firmar Acta - Movimiento #{{ movimiento.id }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    #canvas-firma {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        cursor: crosshair;
+        touch-action: none;
+        background: #ffffff;
+    }
+    #canvas-firma.firmando {
+        border-color: #0d6efd;
+    }
+    .firma-instruccion {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <!-- Breadcrumb -->
+    <nav class="page-breadcrumb mb-3 animate__animated animate__fadeIn">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'inventario:dashboard' %}" class="breadcrumb-link text-decoration-none">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'inventario:movimiento_detalle' movimiento.id %}" class="breadcrumb-link text-decoration-none">Movimiento #{{ movimiento.id }}</a></li>
+            <li class="breadcrumb-item active">Firmar Acta</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- CARTA DE FIRMA -->
+            <div class="page-card animate__animated animate__fadeIn shadow-sm" style="border-radius: 0.75rem; overflow: hidden; background: #fff;">
+                
+                <!-- CABECERA AZUL -->
+                <div class="page-header" style="background-color: var(--ecl-primary, #0b71b1); padding: 1.2rem 1.5rem;">
+                    <div class="d-flex align-items-center text-white">
+                        <i class="bi bi-pencil-square fs-3 me-3"></i>
+                        <div>
+                            <h4 class="mb-0" style="font-weight: 600;">Registro de Firma Digital</h4>
+                            <p class="mb-0 small" style="opacity: 0.9;">Usted está firmando como: <strong>{{ etiqueta_firma }}</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-body p-4">
+                    <!-- Información del Movimiento (Compacta) -->
+                    <div class="alert alert-info border-0 shadow-sm mb-4" style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9 !important;">
+                        <div class="row small text-dark">
+                            <div class="col-6"><strong>Movimiento:</strong> #{{ movimiento.id }}</div>
+                            <div class="col-6"><strong>Tipo:</strong> {{ movimiento.get_tipo_movimiento_display }}</div>
+                        </div>
+                    </div>
+
+                    <!-- ÁREA DE DIBUJO -->
+                    <div class="text-center">
+                        <p class="text-muted small mb-2"><i class="bi bi-info-circle me-1"></i> Dibuje su firma dentro del recuadro</p>
+                        <div class="canvas-container border rounded bg-white shadow-inner mb-3" style="position: relative; cursor: crosshair;">
+                            <canvas id="canvas-firma" width="500" height="250" style="max-width: 100%; height: auto; touch-action: none;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES DE ACCIÓN -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button type="button" id="btn-limpiar" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="bi bi-eraser me-1"></i> Limpiar
+                        </button>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'inventario:movimiento_detalle' movimiento.id %}" class="btn btn-light border px-4 rounded-pill">Cancelar</a>
+                            <button type="button" id="btn-guardar" class="btn btn-primary px-4 rounded-pill shadow-sm" disabled>
+                                <i class="bi bi-check-lg me-1"></i> Confirmar Firma
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulario Oculto -->
+                    <form id="form-firma" method="post" action="{% url 'inventario:firmar_acta' movimiento.id tipo_firma %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="firma_data" id="firma-data-input">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    const canvas = document.getElementById('canvas-firma');
+    const ctx = canvas.getContext('2d');
+    const btnGuardar = document.getElementById('btn-guardar');
+    let dibujando = false;
+    let firmaVacia = true;
+
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches) {
+            return {
+                x: (e.touches[0].clientX - rect.left) * scaleX,
+                y: (e.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+
+    function iniciar(e) {
+        e.preventDefault();
+        dibujando = true;
+        firmaVacia = false;
+        canvas.classList.add('firmando');
+
+        btnGuardar.disabled = false; 
+        
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function dibujar(e) {
+        e.preventDefault();
+        if (!dibujando) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+
+    function terminar(e) {
+        e.preventDefault();
+        dibujando = false;
+        canvas.classList.remove('firmando');
+    }
+
+    // Mouse
+    canvas.addEventListener('mousedown', iniciar);
+    canvas.addEventListener('mousemove', dibujar);
+    canvas.addEventListener('mouseup', terminar);
+    canvas.addEventListener('mouseleave', terminar);
+
+    // Touch
+    canvas.addEventListener('touchstart', iniciar, { passive: false });
+    canvas.addEventListener('touchmove', dibujar, { passive: false });
+    canvas.addEventListener('touchend', terminar);
+
+    // Limpiar
+    document.getElementById('btn-limpiar').addEventListener('click', function () {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        firmaVacia = true;
+        canvas.classList.remove('firmando');
+
+        btnGuardar.disabled = true;
+    });
+
+    // Guardar
+    btnGuardar.addEventListener('click', function () {
+        // (Ya no necesitamos el alert porque el botón está bloqueado físicamente)
+        const dataURL = canvas.toDataURL('image/png');
+        document.getElementById('firma-data-input').value = dataURL;
+        document.getElementById('form-firma').submit();
+    });
+</script>
+{% endblock %}

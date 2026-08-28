@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificación de Movimiento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #0d6efd;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .info-box {
+            background-color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #0d6efd;
+        }
+        .info-box strong {
+            color: #0d6efd;
+        }
+        .elementos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .elementos-table th {
+            background-color: #0d6efd;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .elementos-table td {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>📦 Nuevo Movimiento de Inventario</h2>
+    </div>
+    
+    <div class="content">
+        <p>Hola,</p>
+        <p>Se ha registrado un nuevo movimiento en el sistema de inventario en el cual estás involucrado.</p>
+        
+        <div class="info-box">
+            <strong>Movimiento:</strong> #{{ movimiento.id }}<br>
+            <strong>Tipo:</strong> {{ movimiento.get_tipo_movimiento_display }}<br>
+            <strong>Estado:</strong> {{ movimiento.get_estado_movimiento_display }}<br>
+            <strong>Fecha:</strong> {{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}<br>
+            <strong>Registrado por:</strong> {{ movimiento.usuario_registro.nombre }}
+        </div>
+        
+        {% if movimiento.usuario_origen %}
+        <div class="info-box">
+            <strong>👤 Origen:</strong> {{ movimiento.usuario_origen.nombre }}
+        </div>
+        {% endif %}
+        
+        {% if movimiento.usuario_destino %}
+        <div class="info-box">
+            <strong>👤 Destino:</strong> {{ movimiento.usuario_destino.nombre }}
+        </div>
+        {% endif %}
+        
+        {% if movimiento.usuario_autoriza %}
+        <div class="info-box">
+            <strong>✅ Autoriza:</strong> {{ movimiento.usuario_autoriza.nombre }}
+        </div>
+        {% endif %}
+        
+        <h3>Elementos incluidos ({{ elementos.count }}):</h3>
+        <table class="elementos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Elemento</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in elementos %}
+                <tr>
+                    <td>{{ detalle.elemento.id }}</td>
+                    <td>{{ detalle.elemento.nombre }}</td>
+                    <td>{{ detalle.elemento.estado }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if movimiento.observaciones %}
+        <div class="info-box">
+            <strong>📝 Observaciones:</strong><br>
+            {{ movimiento.observaciones }}
+        </div>
+        {% endif %}
+        
+        <center>
+            <a href="{{ base_url }}{% url 'inventario:movimiento_detalle' movimiento.id %}" 
+            style="background-color: #0d6efd; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            Ver Detalle del Movimiento
+            </a>
+        </center>
+        
+        {% if not movimiento.firmado_completamente %}
+        <p style="color: #dc3545; font-weight: bold;">
+            ⚠️ Este movimiento requiere firmas. Por favor revisa si debes firmar el documento.
+        </p>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>Este es un correo automático del Sistema de Inventario.</p>
+        <p>Por favor no respondas a este correo.</p>
+    </div>
+</body>
+</html>
