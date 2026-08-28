@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Administración - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-gear-fill"></i> Panel de Administración</h1>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="text-primary">Total Usuarios</h6>
+                <h2>{{ total_usuarios }}</h2>
+                <small class="text-muted">{{ usuarios_activos }} activos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="text-success">Roles</h6>
+                <h2>{{ total_roles }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="text-info">Categorías</h6>
+                <h2>{{ total_categorias }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="text-warning">Bodegas</h6>
+                <h2>{{ total_bodegas }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-people-fill"></i> Usuarios
+            </div>
+            <div class="card-body">
+                <p>Gestionar usuarios del sistema</p>
+                <a href="{% url 'usuarios:usuarios_lista' %}" class="btn btn-primary w-100 mb-2">Ver Usuarios</a>
+                <a href="{% url 'usuarios:usuario_crear' %}" class="btn btn-outline-primary w-100">Crear Usuario</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-shield-check"></i> Roles
+            </div>
+            <div class="card-body">
+                <p>Administrar roles y permisos</p>
+                <a href="{% url 'usuarios:roles_lista' %}" class="btn btn-success w-100 mb-2">Ver Roles</a>
+                <a href="{% url 'usuarios:rol_crear' %}" class="btn btn-outline-success w-100">Crear Rol</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-tags-fill"></i> Categorías
+            </div>
+            <div class="card-body">
+                <p>Gestionar categorías de elementos</p>
+                <a href="{% url 'usuarios:categorias_lista' %}" class="btn btn-info w-100 mb-2">Ver Categorías</a>
+                <a href="{% url 'usuarios:categoria_crear' %}" class="btn btn-outline-info w-100">Crear Categoría</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-building"></i> Bodegas
+            </div>
+            <div class="card-body">
+                <p>Administrar bodegas</p>
+                <a href="{% url 'usuarios:bodegas_lista' %}" class="btn btn-warning w-100 mb-2">Ver Bodegas</a>
+                <a href="{% url 'usuarios:bodega_crear' %}" class="btn btn-outline-warning w-100">Crear Bodega</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

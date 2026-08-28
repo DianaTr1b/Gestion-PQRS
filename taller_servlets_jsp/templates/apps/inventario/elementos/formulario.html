@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .form-section-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #0b71b1;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 5px;
+        margin-bottom: 1.5rem;
+        margin-top: 1rem;
+    }
+    .campo-dinamico { display: none; }
+</style>
+{% endblock %}
+
+<!-- AQUÍ ESTÁ EL CAMBIO CLAVE: Usamos 'content' como en tu original -->
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <div class="page-card shadow-sm" style="border-radius: 0.75rem; overflow: hidden; background: #fff;">
+        
+        <div class="page-header d-flex justify-content-between align-items-center" style="background-color: #0b71b1; padding: 1.5rem 2rem;">
+            <div class="d-flex align-items-center">
+                <div class="page-icon text-white me-3 fs-2">
+                    <i class="bi bi-pc-display"></i>
+                </div>
+                <div>
+                    <h1 class="page-title text-white mb-1" style="font-size: 1.5rem; font-weight: 600;">
+                        {% if elemento %}Editar Elemento #{{ elemento.id }}{% else %}{{ titulo|default:"Nuevo Elemento" }}{% endif %}
+                    </h1>
+                    <p class="page-subtitle text-white mb-0" style="opacity: 0.8; font-size: 0.9rem;">
+                        Ingresa o actualiza la información del equipo en el inventario.
+                    </p>
+                </div>
+            </div>
+            <div>
+                <a href="javascript:history.back()" class="btn btn-outline-light btn-sm fw-medium px-3 rounded-pill shadow-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Cancelar y Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="page-body p-4">
+            <form method="post" enctype="multipart/form-data" id="elemento-form" novalidate>
+                {% csrf_token %}
+
+                <!-- SECCIÓN 1: DATOS PRINCIPALES -->
+                <div class="content-card mb-4 border rounded shadow-sm p-4">
+                    <div class="form-section-title"><i class="bi bi-star-fill me-2"></i>Datos Principales</div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted">ID / SERIAL INTERNO</label>
+                            {{ form.id }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted">CONDICIÓN</label>
+                            {{ form.condicion }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted">COMPAÑÍA</label>
+                            {{ form.compania }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted">CATEGORÍA</label>
+                            {{ form.categoria }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="small fw-bold text-muted">NOMBRE ELEMENTO</label>
+                            {{ form.nombre_elemento }}
+                        </div>
+
+                        <!-- Campos de Renta/Suscripción -->
+                        <div class="col-md-3" id="div_periodicidad" style="display:none;">
+                            <label class="small fw-bold text-muted">PERIODICIDAD DE PAGO</label>
+                            {{ form.periodicidad_pago }}
+                        </div>
+                        <div class="col-md-3" id="div_tipo_cuenta" style="display:none;">
+                            <label class="small fw-bold text-muted">TIPO DE CUENTA</label>
+                            {{ form.tipo_cuenta }}
+                        </div>
+                        <div class="col-md-3" id="div_cuenta" style="display:none;">
+                            <label class="small fw-bold text-muted">CUENTA ASOCIADA</label>
+                            {{ form.cuenta_asociada }}
+                        </div>
+                        <div class="col-md-3" id="div_padre" style="display:none;">
+                            <label class="small fw-bold text-muted">CUENTA PRINCIPAL</label>
+                            {{ form.elemento_padre }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: DATOS TÉCNICOS -->
+                <div class="content-card mb-4 border rounded shadow-sm p-4">
+                    <div class="form-section-title"><i class="bi bi-cpu-fill me-2"></i>Especificaciones Técnicas</div>
+                    <div class="row g-3">
+                        <div class="col-md-4 campo-dinamico" id="div_marca"><label class="small fw-bold text-muted">MARCA</label>{{ form.marca }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_modelo"><label class="small fw-bold text-muted">MODELO</label>{{ form.modelo }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_serial"><label class="small fw-bold text-muted">SERIAL</label>{{ form.serial }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_imei"><label class="small fw-bold text-muted">IMEI</label>{{ form.imei }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_imei2"><label class="small fw-bold text-muted">IMEI 2</label>{{ form.imei_2 }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_color"><label class="small fw-bold text-muted">COLOR</label>{{ form.color }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_operador"><label class="small fw-bold text-muted">OPERADOR</label>{{ form.operador }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_numero"><label class="small fw-bold text-muted">NÚMERO</label>{{ form.numero }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_capacidad"><label class="small fw-bold text-muted">CAPACIDAD</label>{{ form.capacidad }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_tipo"><label class="small fw-bold text-muted">TIPO</label>{{ form.tipo }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_caracteristica"><label class="small fw-bold text-muted">CARACTERÍSTICA</label>{{ form.caracteristica }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_puertos"><label class="small fw-bold text-muted">PUERTOS</label>{{ form.puertos }}</div>
+                        <div class="col-md-4 campo-dinamico" id="div_mac"><label class="small fw-bold text-muted">MAC</label>{{ form.mac }}</div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: UBICACIÓN Y COMPRA -->
+                <div class="content-card mb-4 border rounded shadow-sm p-4">
+                    <div class="form-section-title"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación e Información Financiera</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted">BODEGA ACTUAL</label>
+                            {{ form.bodega_actual }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted">USUARIO QUE REGISTRA</label>
+                            {{ form.usuario_registro }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted" id="label_fecha_compra">FECHA DE COMPRA</label>
+                            {{ form.fecha_compra }}
+                        </div>
+                        <div class="col-md-6" id="div_garantia">
+                            <label class="small fw-bold text-muted" id="label_garantia_hasta">GARANTÍA HASTA</label>
+                            {{ form.garantia_hasta }}
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="small fw-bold text-muted">DESCRIPCIÓN GENERAL</label>
+                            {{ form.descripcion }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="javascript:history.back()" class="btn btn-light border px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-primary px-5 fw-bold">{{ accion|default:"Guardar" }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("✅ Iniciando script de inventario con persistencia de errores...");
+
+    // 1. SELECTORES
+    const condicionSelect = document.getElementById('id_condicion');
+    const categoriaSelect = document.getElementById('id_categoria');
+    const nombreElementoSelect = document.getElementById('id_nombre_elemento');
+    const tipoCuentaSelect = document.getElementById('id_tipo_cuenta');
+    const padreInput = document.getElementById('id_elemento_padre');
+    const fechaCompraInput = document.getElementById('id_fecha_compra');
+    const garantiaInput = document.getElementById('id_garantia_hasta');
+    const periodicidadInput = document.getElementById('id_periodicidad_pago');
+
+    const divPeriodicidad = document.getElementById('div_periodicidad');
+    const divTipoCuenta = document.getElementById('div_tipo_cuenta');
+    const divCuenta = document.getElementById('div_cuenta');
+    const divPadre = document.getElementById('div_padre');
+    const divGarantia = document.getElementById('div_garantia');
+
+    const labelCompra = document.getElementById('label_fecha_compra');
+    const labelGarantia = document.getElementById('label_garantia_hasta');
+
+    const camposDinamicos = {
+        'marca': 'div_marca', 'modelo': 'div_modelo', 'serial': 'div_serial',
+        'imei': 'div_imei', 'imei2': 'div_imei2', 'color': 'div_color',
+        'operador': 'div_operador', 'numero': 'div_numero', 'capacidad': 'div_capacidad',
+        'tipo': 'div_tipo', 'caracteristica': 'div_caracteristica', 'puertos': 'div_puertos',
+        'mac': 'div_mac'
+    };
+
+    // 2. FUNCIÓN DE CONDICIÓN
+    function toggleCondicion() {
+        if (!condicionSelect) return;
+        const val = condicionSelect.value || '';
+        
+        if (divPeriodicidad) divPeriodicidad.style.display = 'none';
+        if (periodicidadInput) periodicidadInput.required = false;
+        if (divTipoCuenta) divTipoCuenta.style.display = 'none';
+        if (divCuenta) divCuenta.style.display = 'none';
+        if (divPadre) divPadre.style.display = 'none';
+        if (divGarantia) divGarantia.style.display = 'block';
+        if (labelCompra) labelCompra.innerHTML = 'FECHA DE COMPRA';
+        if (labelGarantia) labelGarantia.innerHTML = 'GARANTÍA HASTA';
+
+        if (val.includes('Rentado') || val.includes('Renta')) {
+            if (divPeriodicidad) divPeriodicidad.style.display = 'block';
+            if (periodicidadInput) periodicidadInput.required = true;
+            if (divGarantia) divGarantia.style.display = 'none';
+            if (labelCompra) labelCompra.innerHTML = 'FECHA INICIO RENTA';
+        } else if (val.includes('Suscripcion') || val.includes('Suscripción') || val.includes('Software')) {
+            if (divPeriodicidad) divPeriodicidad.style.display = 'block';
+            if (periodicidadInput) periodicidadInput.required = true;
+            if (divTipoCuenta) divTipoCuenta.style.display = 'block';
+            if (divCuenta) divCuenta.style.display = 'block';
+            if (labelCompra) labelCompra.innerHTML = 'INICIO SUSCRIPCIÓN';
+            if (labelGarantia) labelGarantia.innerHTML = 'PRÓXIMA RENOVACIÓN';
+            
+            if (tipoCuentaSelect && tipoCuentaSelect.value === 'Subcuenta') {
+                if (divPadre) divPadre.style.display = 'block';
+            }
+
+            if (categoriaSelect) {
+                Array.from(categoriaSelect.options).forEach((opt, idx) => {
+                    if (opt.text.toLowerCase().includes('software')) {
+                        categoriaSelect.selectedIndex = idx;
+                        categoriaSelect.dispatchEvent(new Event('change')); 
+                    }
+                });
+            }
+        }
+    }
+
+    if (condicionSelect) condicionSelect.addEventListener('change', toggleCondicion);
+    
+    if (tipoCuentaSelect) {
+        tipoCuentaSelect.addEventListener('change', function() {
+            if (divPadre) divPadre.style.display = (this.value === 'Subcuenta') ? 'block' : 'none';
+        });
+    }
+
+    // 3. ACTUALIZACIÓN DE CAMPOS TÉCNICOS
+    function actualizarCamposTecnicos() {
+        if (!nombreElementoSelect) return;
+        const opt = nombreElementoSelect.options[nombreElementoSelect.selectedIndex];
+        const config = opt && opt.dataset.config ? JSON.parse(opt.dataset.config) : {};
+        
+        Object.keys(camposDinamicos).forEach(key => {
+            const div = document.getElementById(camposDinamicos[key]);
+            if (div) {
+                div.style.display = config[key] ? 'block' : 'none';
+                const input = div.querySelector('input, select');
+                if (input) input.required = !!config[key];
+            }
+        });
+    }
+
+    if (nombreElementoSelect) {
+        nombreElementoSelect.addEventListener('change', actualizarCamposTecnicos);
+    }
+
+    // 4. PETICIÓN A LA API CON "MEMORIA" DE ERRORES
+    function cargarNombresElemento(catId, valorPrevio = null) {
+        if (!catId || !nombreElementoSelect) return;
+        
+        nombreElementoSelect.disabled = true;
+        
+        fetch('/inventario/api/nombres-elementos/' + catId + '/')
+            .then(res => res.json())
+            .then(data => {
+                nombreElementoSelect.innerHTML = '<option value="">Selecciona un elemento</option>';
+                if (data.nombres) {
+                    data.nombres.forEach(n => {
+                        const opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.text = n.nombre;
+                        opt.dataset.config = JSON.stringify(n.configuracion);
+                        
+                        // Si Django recargó la página con un valor previo, lo auto-seleccionamos
+                        if (valorPrevio && n.id.toString() === valorPrevio.toString()) {
+                            opt.selected = true;
+                        }
+                        nombreElementoSelect.add(opt);
+                    });
+                }
+                nombreElementoSelect.disabled = false;
+                // Disparamos la actualización visual de los campos
+                actualizarCamposTecnicos();
+            })
+            .catch(err => {
+                console.error("Error API Categorías:", err);
+                nombreElementoSelect.disabled = false;
+            });
+    }
+
+    if (categoriaSelect) {
+        categoriaSelect.addEventListener('change', function() {
+            cargarNombresElemento(this.value);
+        });
+    }
+
+    // 5. INICIALIZACIÓN AL CARGAR LA PÁGINA
+    toggleCondicion();
+    
+    // Verificamos si Django recargó la página conservando una categoría y un nombre de elemento
+    if (categoriaSelect && categoriaSelect.value) {
+        const valorPrevioNombre = nombreElementoSelect ? nombreElementoSelect.value : null;
+        cargarNombresElemento(categoriaSelect.value, valorPrevioNombre);
+    }
+});
+</script>
+{% endblock extra_js %}

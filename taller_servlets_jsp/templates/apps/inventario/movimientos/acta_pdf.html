@@ -1,0 +1,308 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Acta de Movimiento de Inventario</title>
+<style>
+  body {
+    font-family: 'Helvetica', Arial, sans-serif;
+    color: #232830;
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Utilidades Generales */
+  .w-100 { width: 100%; }
+  .text-right { text-align: right; }
+  .text-center { text-align: center; }
+  .valign-top { vertical-align: top; }
+  .avoid-break { page-break-inside: avoid; }
+  
+  /* Encabezado */
+  .header-table { border-bottom: 3px solid #0b71b1; padding-bottom: 12px; margin-bottom: 20px; }
+  .doc-title h1 { margin: 0; font-size: 16px; color: #232830; text-transform: uppercase; letter-spacing: 0.4px; }
+  .doc-number { background-color: #f4f6f8; border: 1px solid #dde3e9; padding: 5px 12px; font-weight: bold; color: #08578c; display: inline-block; margin-top: 6px; border-radius: 6px; font-size: 12px; width: auto; }
+  
+  /* Secciones */
+  .section-label { font-size: 11px; font-weight: bold; color: #08578c; text-transform: uppercase; border-bottom: 1px solid #dde3e9; padding-bottom: 2px; margin-top: 14px; margin-bottom: 6px; letter-spacing: 0.6px; }
+  
+  /* Tipo de Movimiento (Ajustado a su justa medida) */
+  .movement-container { margin-bottom: 12px; }
+  .movement-type { background-color: #f4f6f8; border: 1px solid #dde3e9; border-left: 4px solid #0b71b1; padding: 8px 14px; font-weight: bold; border-radius: 6px; display: inline-block; font-size: 12px; }
+  
+  /* Tarjetas de Usuarios (Proporcionadas y sin desproporción) */
+  .card { 
+    background-color: #f4f6f8; 
+    border: 1px solid #dde3e9; 
+    padding: 14px 16px; 
+    border-radius: 8px; 
+  }
+  .card-label { font-size: 10px; font-weight: bold; color: #6c7178; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.4px; }
+  .field-key { color: #6c7178; font-size: 11px; padding: 3px 0; }
+  .field-val { font-weight: bold; font-size: 11px; text-align: right; padding: 3px 0; }
+  
+  /* Elementos (Jerarquía visual: etiqueta pequeña, valor destacado) */
+  .item-table { border: 1px solid #dde3e9; margin-bottom: 8px; background-color: #ffffff; }
+  .item-head { background-color: #f4f6f8; padding: 4px 8px; border-bottom: 1px solid #dde3e9; font-weight: bold; }
+  .item-body td { padding: 4px 8px; border-bottom: 1px solid #dde3e9; border-right: 1px solid #dde3e9; }
+  .item-key { font-size: 11px; color: #6c7178; margin-bottom: 1px; }
+  .item-val { font-size: 11px; font-weight: bold; color: #232830; }
+  
+  /* Firmas (Tamaño uniforme y líneas restauradas) */
+  .signatures-table { margin-top: 15px; }
+  .sig-space { height: 120px; vertical-align: bottom; text-align: center; padding-bottom: 4px; }
+  .sig-line { border-top: 1px solid #232830; margin: 0 auto; margin-bottom: 6px; width: 85%; }
+  .sig-name { font-weight: bold; font-size: 11px; }
+  .sig-role { font-size: 10px; color: #6c7178; margin-top: 2px; }
+  .sig-tag { font-size: 9px; font-weight: bold; color: #08578c; background-color: #f4f6f8; padding: 3px 10px; text-transform: uppercase; margin-top: 8px; border-radius: 4px; display: inline-block; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+  <!-- ENCABEZADO -->
+  <table class="w-100 header-table avoid-break">
+    <tr>
+      <td style="width: 50%; vertical-align: middle;">
+        <!-- Ruta estática segura para xhtml2pdf -->
+        <img src="{{ logo_path }}" style="width: 220px;" alt="Logo ECL"/>
+      </td>
+      <td class="text-right" style="width: 50%; vertical-align: middle;">
+        <div class="doc-title">
+          <h1>Acta de Movimiento</h1>
+          <table style="width: 100%; margin-top: 6px; margin-bottom: 6px;" cellpadding="0" cellspacing="0">
+            <tr>
+              <!-- Columna 1: El fantasma que ocupa el 65% del espacio -->
+              <td style="width: 65%;"></td> 
+              
+              <!-- Columna 2: Tu botón forzado a ocupar solo el 35% restante -->
+              <td style="width: 35%; background-color: #eaf3fa; border: 1px solid #a9cce3; padding: 5px; font-weight: bold; color: #08578c; text-align: center;">
+                N.° MOV-{{ movimiento.id }}
+              </td>
+            </tr>
+          </table>
+          {% comment %} <span class="doc-number">N.° MOV-{{ movimiento.id }}</span> {% endcomment %}
+          <div style="color: #6c7178; font-size: 10px; margin-top: 4px;">{{ movimiento.fecha_movimiento|date:"d/m/Y" }} {{ movimiento.hora_movimiento|time:"H:i" }}</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- TIPO DE MOVIMIENTO  -->
+  <div class="movement-container avoid-break" style="margin-top: 8px; margin-bottom: 15px;">
+    <!-- Usamos una tabla que se ajusta al contenido para evitar que se estire -->
+    <table cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="width: 5px; background-color: #0b71b1;"></td>
+        <td style="background-color: #f8f9fa; border: 1px solid #dde3e9; border-left: none; padding: 4px 8px; font-weight: bold; color: #232830; font-size: 11px;">
+          Tipo de movimiento: {{ movimiento.get_tipo_movimiento_display|default:"Asignación" }}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- TÍTULO DE SECCIÓN CON LÍNEA EXTENDIDA -->
+  <table class="w-100 avoid-break" style="margin-bottom: 12px;" cellpadding="0" cellspacing="0">
+      <tr>
+          <!-- El texto ocupa solo el espacio necesario (1%) -->
+          <td style="color: #08578c; font-weight: bold; font-size: 11px; text-transform: uppercase; white-space: nowrap; width: 1%;">
+              USUARIOS&nbsp;INVOLUCRADOS
+          </td>
+          <!-- La línea ocupa el resto del espacio (99%) -->
+          <td style="width: 99%; padding-left: 10px; vertical-align: middle;">
+              <div style="border-bottom: 1px solid #dde3e9; margin-top: 2px;"></div>
+          </td>
+      </tr>
+  </table>
+
+  <!-- TARJETAS DE USUARIOS -->
+  <!-- Usamos una tabla principal dividida en: 48% (Tarjeta) - 4% (Espacio) - 48% (Tarjeta) -->
+  <table class="w-100 avoid-break" style="width: 100%; margin-bottom: 10px;" cellpadding="0" cellspacing="0">
+    <tr>
+      
+      <!-- ================= USUARIO ORIGEN (48%) ================= -->
+      <td class="valign-top" style="width: 48%; background-color: #f4f6f8; border: 1px solid #dde3e9; padding: 4px 8px;">
+        <div style="font-size: 10px; font-weight: bold; color: #6c7178; text-transform: uppercase; margin-bottom: 2px; padding-left:0;">USUARIO ORIGEN</div>
+        
+        <table class="w-100" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="color: #6c7178; font-size: 11px; text-align: left; padding: 1px 0; padding-left: 0;">Nombre</td>
+            <td style="font-weight: bold; font-size: 11px; text-align: right; color: #232830; padding: 1px 0;">
+              {% if movimiento.usuario_origen %}{{ movimiento.usuario_origen.nombre }}{% else %}Principal Bodega{% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #6c7178; font-size: 11px; text-align: left; padding: 1px 0; padding-left: 0;">Cargo</td>
+            <td style="font-weight: bold; font-size: 11px; text-align: right; color: #232830; padding: 1px 0;">
+              {% if movimiento.usuario_origen %}{{ movimiento.usuario_origen.cargo_contrato|default:"No aplica" }}{% else %}No aplica{% endif %}
+            </td>
+          </tr>
+        </table>
+      </td>
+      
+      <!-- ================= COLUMNA ESPACIADORA (4%) ================= -->
+      <td style="width: 4%;"></td>
+      
+      <!-- ================= USUARIO DESTINO (48%) ================= -->
+      <td class="valign-top" style="width: 48%; background-color: #f4f6f8; border: 1px solid #dde3e9; padding: 6px 10px;">
+        <div style="font-size: 10px; font-weight: bold; color: #6c7178; text-transform: uppercase; margin-bottom: 2px; padding-left: 0;">USUARIO DESTINO / RECIBE</div>
+        
+        <table class="w-100" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="color: #6c7178; font-size: 11px; text-align: left; padding: 1px 0; padding-left: 0;">Nombre</td>
+            <td style="font-weight: bold; font-size: 11px; text-align: right; color: #232830; padding: 1px 0;">
+              {% if movimiento.usuario_destino %}{{ movimiento.usuario_destino.nombre }}{% else %}Jonathan Herrera Puerto{% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td style="color: #6c7178; font-size: 11px; text-align: left; padding: 1px 0; padding-left: 0;">Cargo</td>
+            <td style="font-weight: bold; font-size: 11px; text-align: right; color: #232830; padding: 1px 0;">
+              {% if movimiento.usuario_destino %}{{ movimiento.usuario_destino.cargo_contrato|default:"No aplica" }}{% else %}Analista de Tecnología y Sistemas{% endif %}
+            </td>
+          </tr>
+        </table>
+      </td>
+
+    </tr>
+  </table>
+
+  <!-- ELEMENTOS DEL MOVIMIENTO -->
+  <div class="section-label">Elementos del movimiento</div>
+  
+  {% for detalle in movimiento.detalles.all %}
+  <table class="w-100 avoid-break" cellpadding="0" cellspacing="0" style="margin-bottom: 8px;">
+    <tr>
+      <td style="padding: 0;">
+        <table class="w-100 item-table" cellpadding="0" cellspacing="0">
+          <tr>
+            <td colspan="3" class="item-head">
+              <table class="w-100">
+                <tr>
+                  <td style="width: 70%;"><strong>{{ forloop.counter }}. {{ detalle.elemento.nombre }}</strong> <span style="color: #08578c; font-size: 10px;">({{ detalle.elemento.categoria.nombre }})</span></td>
+                  <td style="width: 30%; text-align: right; color: #08578c;">ID: {{ detalle.elemento.id }}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr class="item-body">
+            <td style="width: 33%;">
+              <div class="item-key">Marca</div>
+              <div class="item-val">{{ detalle.elemento.marca|default:"—" }}</div>
+            </td>
+            <td style="width: 33%;">
+              <div class="item-key">Modelo</div>
+              <div class="item-val">{{ detalle.elemento.modelo|default:"—" }}</div>
+            </td>
+            <td style="width: 34%; border-right: none;">
+              <div class="item-key">Serial</div>
+              <div class="item-val">{{ detalle.elemento.serial|default:"—" }}</div>
+            </td>
+          </tr>
+          <tr class="item-body">
+            <td style="width: 33%; border-bottom: none;">
+              <div class="item-key">Estado</div>
+              <div class="item-val" style="color: #4f7a3d;">{{ detalle.elemento.estado|default:"—" }}</div>
+            </td>
+            <td style="width: 33%; border-bottom: none;">
+              <div class="item-key">Compañía</div>
+              <div class="item-val">{{ detalle.elemento.compania|default:"ECL" }}</div>
+            </td>
+            <td style="width: 34%; border-right: none; border-bottom: none;">
+              <div class="item-key">Operador</div>
+              <div class="item-val">{{ detalle.elemento.operador|default:"N/R" }}</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  {% endfor %}
+
+  <!-- OBSERVACIONES -->
+  <table class="w-100 avoid-break" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
+    <tr>
+      <td>
+        <div class="section-label" style="margin-top: 0px;">Observaciones generales</div>
+        <div class="card" style="font-style: italic; color: #6c7178;">
+          {{ movimiento.observaciones|default:"Sin observaciones." }}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- FIRMAS -->
+  <table class="w-100 avoid-break" cellpadding="0" cellspacing="0" style="margin-top: 20px;">
+    <tr>
+      <td>
+        <div class="section-label" style="margin-top: 0px;">Firmas</div>
+        <table class="w-100 signatures-table text-center" cellpadding="0" cellspacing="0">
+          <tr>
+            
+            <!-- ================= FIRMA RECIBE ================= -->
+            <td style="width: 33%; padding: 0 10px;" class="valign-bottom">
+              <!-- 👇 Contenedor inamovible de 130px: siempre reserva el espacio -->
+              <div style="height: 130px; text-align: center;">
+                {% if movimiento.firma_recibe %}
+                  <!-- Si HAY firma: Se renderiza en alta resolución -->
+                  <img src="{{ movimiento.firma_recibe.path }}" style="max-height: 125px; width: auto;" alt="Firma">
+                {% else %}
+                  <!-- Si NO HAY firma: Dibuja un espacio vacío y la línea horizontal -->
+                  <div style="height: 110px;"></div>
+                  <div style="border-bottom: 1px solid #232830; width: 85%; margin: 0 auto;"></div>
+                {% endif %}
+              </div>
+              
+              <div class="sig-name" style="margin-top: 6px;">{% if movimiento.usuario_destino %}{{ movimiento.usuario_destino.nombre }}{% else %}—{% endif %}</div>
+              <div class="sig-role">{% if movimiento.usuario_destino %}{{ movimiento.usuario_destino.cargo_contrato|default:"No aplica" }}{% else %}—{% endif %}</div>
+              <div class="sig-tag">RECIBE</div>
+            </td>
+            
+            <!-- ================= FIRMA AUTORIZA ================= -->
+            <td style="width: 33%; padding: 0 10px;" class="valign-bottom">
+              <div style="height: 130px; text-align: center;">
+                {% if movimiento.firma_autoriza %}
+                  <img src="{{ movimiento.firma_autoriza.path }}" style="max-height: 125px; width: auto;" alt="Firma">
+                {% else %}
+                  <div style="height: 110px;"></div>
+                  <div style="border-bottom: 1px solid #232830; width: 85%; margin: 0 auto;"></div>
+                {% endif %}
+              </div>
+              
+              <div class="sig-name" style="margin-top: 6px;">{% if movimiento.usuario_autoriza %}{{ movimiento.usuario_autoriza.nombre }}{% else %}— Por definir —{% endif %}</div>
+              <div class="sig-role">{% if movimiento.usuario_autoriza %}{{ movimiento.usuario_autoriza.cargo_contrato|default:"No aplica" }}{% else %}—{% endif %}</div>
+              <div class="sig-tag">AUTORIZADO POR</div>
+            </td>
+            
+            <!-- ================= FIRMA ELABORA ================= -->
+            <td style="width: 33%; padding: 0 10px;" class="valign-bottom">
+              <div style="height: 130px; text-align: center;">
+                {% if movimiento.firma_elabora %}
+                  <img src="{{ movimiento.firma_elabora.path }}" style="max-height: 125px; width: auto;" alt="Firma">
+                {% else %}
+                  <div style="height: 110px;"></div>
+                  <div style="border-bottom: 1px solid #232830; width: 85%; margin: 0 auto;"></div>
+                {% endif %}
+              </div>
+              
+              <div class="sig-name" style="margin-top: 6px;">{% if movimiento.usuario_registro %}{{ movimiento.usuario_registro.nombre }}{% else %}—{% endif %}</div>
+              <div class="sig-role">{% if movimiento.usuario_registro %}{{ movimiento.usuario_registro.cargo_contrato|default:"No aplica" }}{% else %}—{% endif %}</div>
+              <div class="sig-tag">ELABORADO POR</div>
+            </td>  
+          </tr>
+        </td>
+      </tr>
+    </table>
+  </table>
+
+  <!-- FOOTER -->
+  <table class="w-100 avoid-break" style="margin-top: 30px; border-top: 1px solid #dde3e9; padding-top: 10px; color: #6c7178; font-size: 10px;">
+    <tr>
+      <td style="width: 80%;">Documento generado por el Sistema de Inventario ECL-TOTAL</td>
+      <td style="width: 20%; text-align: right;">MOV-{{ movimiento.id }}</td>
+    </tr>
+  </table>
+
+</body>
+</html>

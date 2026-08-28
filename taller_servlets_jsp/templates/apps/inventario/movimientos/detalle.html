@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Movimiento #{{ movimiento.id }} - Sistema de Inventario{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-arrow-left-right"></i> 
+        Movimiento #{{ movimiento.id }}
+    </h2>
+    
+    <div class="d-flex gap-2">
+        
+        {% if not movimiento.es_firmado_total %}
+            <a href="{% url 'inventario:movimiento_editar' movimiento.id %}" class="btn btn-warning shadow-sm">
+                <i class="bi bi-pencil-square"></i> Editar Movimiento
+            </a>
+
+            {% if request.user.perfil.rol.nombre == 'Técnico' %}
+            <form action="{% url 'inventario:movimiento_anular' movimiento.id %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger shadow-sm" onclick="return confirm
+                ('¿Estás seguro de anular este movimiento? Los equipos serán liberados.')">
+                    <i class="bi bi-x-circle"></i> Anular
+                </button>
+            </form>
+            {% endif %}
+
+        {% endif %}
+
+        {% if request.user.perfil.rol.nombre == 'Colaborador' %}
+            <a href="{% url 'inventario:mis_documentos' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Documentos
+            </a>
+        {% else %}
+            <a href="{% url 'inventario:movimientos_lista' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        {% endif %}
+    </div>
+</div>
+ 
+<div class="row">
+    <!-- Columna izquierda: Información del movimiento -->
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <th width="40%">ID Movimiento:</th>
+                            <td><strong>#{{ movimiento.id }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th>Tipo:</th>
+                            <td>
+                                <!-- Insignia con color según el tipo -->
+                                {% if movimiento.tipo_movimiento == 'Asignacion' %}
+                                    <span class="badge bg-primary">{{ movimiento.get_tipo_movimiento_display }}</span>
+                                {% elif movimiento.tipo_movimiento == 'Devolucion' %}
+                                    <span class="badge bg-success">{{ movimiento.get_tipo_movimiento_display }}</span>
+                                {% elif movimiento.tipo_movimiento == 'Reasignacion' %}
+                                    <span class="badge bg-info">{{ movimiento.get_tipo_movimiento_display }}</span>
+                                {% elif movimiento.tipo_movimiento == 'Baja' %}
+                                    <span class="badge bg-danger">{{ movimiento.get_tipo_movimiento_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ movimiento.get_tipo_movimiento_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle">Estado:</th>
+                            <td>
+                                {% if movimiento.estado_movimiento == 'Realizado' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill shadow-sm">
+                                        <i class="bi bi-patch-check-fill me-1"></i> Completado
+                                    </span>
+                                {% elif movimiento.estado_movimiento == 'Pendiente' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning-700 border border-warning border-opacity-25 px-3 py-2 rounded-pill shadow-sm" style="color: #856404;">
+                                        <i class="bi bi-hourglass-split me-1"></i> En Proceso (Faltan Firmas)
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2 rounded-pill shadow-sm">
+                                        <i class="bi bi-x-circle me-1"></i> {{ movimiento.get_estado_movimiento_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Fecha:</th>
+                            <td>{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Hora:</th>
+                            <td>{{ movimiento.hora_movimiento|time:"H:i:s" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Registrado por:</th>
+                            <td>
+                                <i class="bi bi-person-circle"></i> 
+                                {{ movimiento.usuario_registro.nombre }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Origen y Destino -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-arrow-left-right"></i> Origen y Destino</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <!-- Mostrar solo si existen -->
+                        {% if movimiento.usuario_origen %}
+                        <tr>
+                            <th width="40%">Usuario Origen:</th>
+                            <td>
+                                <i class="bi bi-person"></i> 
+                                {{ movimiento.usuario_origen.nombre }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if movimiento.usuario_destino %}
+                        <tr>
+                            <th>Usuario Destino:</th>
+                            <td>
+                                <i class="bi bi-person-check"></i> 
+                                {{ movimiento.usuario_destino.nombre }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        
+                        {% if movimiento.bodega_origen %}
+                        <tr>
+                            <th>Bodega Origen:</th>
+                            <td>
+                                <i class="bi bi-building"></i> 
+                                {{ movimiento.bodega_origen.nombre_bodega }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        
+                        <tr>
+                            <th>Bodega Actual:</th>
+                            <td>
+                                {% for detalle in detalles %}
+                                    {% if forloop.first %}
+                                        <i class="bi bi-building"></i>
+                                        {{ detalle.elemento.bodega_actual.nombre }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Usuario Actual:</th>
+                            <td>
+                                {% for detalle in detalles %}
+                                    {% if forloop.first %}
+                                        {% if detalle.elemento.usuario_actual %}
+                                            <i class="bi bi-person"></i>
+                                            {{ detalle.elemento.usuario_actual.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">En bodega</span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        
+                        {% if not movimiento.usuario_origen and not movimiento.usuario_destino %}
+                        <tr>
+                            <td colspan="2" class="text-muted text-center">
+                                <em>No se especificó origen ni destino</em>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Observaciones -->
+        {% if movimiento.observaciones %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Observaciones</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ movimiento.observaciones }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Firmas del acta -->
+        <div class="card mb-3 shadow-sm border-0">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pen text-primary me-2"></i>Firmas del Acta</h5>
+            </div>
+            <div class="card-body">
+                {% if movimiento.es_firmado_total %}
+                    <div class="alert alert-success mb-3 shadow-sm border-0 d-flex align-items-center">
+                        <i class="bi bi-patch-check-fill fs-4 me-2"></i> 
+                        <div>
+                            <strong>¡Documento Completado!</strong><br>
+                            <small>Todas las firmas requeridas han sido registradas.</small>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex flex-column gap-3 mt-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-dark fw-medium"><i class="bi bi-person-check text-primary me-2"></i>Recibe</span>
+                        {% if movimiento.firma_recibe %}
+                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i>Firmado</span>
+                        {% elif request.user.perfil == movimiento.usuario_destino and not movimiento.es_firmado_total %}
+                            <a href="{% url 'inventario:firmar_acta' movimiento.id 'recibe' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-medium">
+                                <i class="bi bi-pen me-1"></i>Firmar
+                            </a>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2">Pendiente</span>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-0 text-muted opacity-25">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-dark fw-medium"><i class="bi bi-person-gear text-primary me-2"></i>Elaborado por</span>
+                        {% if movimiento.firma_elabora %}
+                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i>Firmado</span>
+                        {% elif request.user.perfil == movimiento.usuario_registro and not movimiento.es_firmado_total %}
+                            <a href="{% url 'inventario:firmar_acta' movimiento.id 'elabora' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-medium">
+                                <i class="bi bi-pen me-1"></i>Firmar
+                            </a>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2">Pendiente</span>
+                        {% endif %}
+                    </div>
+
+                    {% if movimiento.usuario_autoriza %}
+                    <hr class="my-0 text-muted opacity-25">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-dark fw-medium"><i class="bi bi-shield-check text-warning me-2"></i>Autoriza</span>
+                        {% if movimiento.firma_autoriza %}
+                            <span class="badge bg-success px-3 py-2 rounded-pill shadow-sm"><i class="bi bi-check-circle-fill me-1"></i>Firmado</span>
+                        {% elif request.user.perfil == movimiento.usuario_autoriza and not movimiento.es_firmado_total %}
+                            <a href="{% url 'inventario:firmar_acta' movimiento.id 'autoriza' %}" class="btn btn-sm btn-outline-warning rounded-pill px-4 fw-medium">
+                                <i class="bi bi-pen me-1"></i>Firmar
+                            </a>
+                        {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-3 py-2">Pendiente</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Documento Soporte -->
+        {% if movimiento.documento_soporte %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark"></i> Documento Soporte</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ movimiento.documento_soporte.url }}" target="_blank" class="btn btn-outline-primary">
+                    <i class="bi bi-download"></i> Descargar Documento
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Columna derecha: Elementos del movimiento -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam"></i> 
+                    Elementos ({{ detalles.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Botones de acta -->
+                <div class="d-flex gap-2 mb-3">
+                    <a href="{% url 'inventario:preview_acta' movimiento.id %}" 
+                       class="btn btn-sm btn-outline-primary" target="_blank">
+                        <i class="bi bi-eye"></i> Previsualizar Acta
+                    </a>
+                    <a href="{% url 'inventario:descargar_acta' movimiento.id %}" 
+                       class="btn btn-sm btn-success">
+                        <i class="bi bi-file-earmark-pdf"></i> Descargar Acta
+                    </a>
+                </div>   
+                
+                <!-- Tabla responsiva con detalles de elementos -->
+                {% if detalles %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Elemento</th>
+                                <th class="text-center">Estado</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr>
+                                <td><code>{{ detalle.elemento.id }}</code></td>
+                                <td>
+                                    <a href="{% url 'inventario:elemento_detalle' detalle.elemento.id %}" 
+                                    class="text-decoration-none">
+                                        <strong>{{ detalle.elemento.nombre }}</strong>
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ detalle.elemento.marca }} {{ detalle.elemento.modelo }}
+                                        {% if detalle.elemento.serial %}
+                                            | S/N: {{ detalle.elemento.serial }}
+                                        {% endif %}
+                                    </small>
+                                    <br>
+                                    <span class="badge bg-secondary">{{ detalle.elemento.categoria.nombre }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if detalle.elemento.estado == 'Disponible' %}
+                                        <span class="badge bg-success">{{ detalle.elemento.estado }}</span>
+                                    {% elif detalle.elemento.estado == 'Asignado' %}
+                                        <span class="badge bg-primary">{{ detalle.elemento.estado }}</span>
+                                    {% elif detalle.elemento.estado == 'Mantenimiento' %}
+                                        <span class="badge bg-warning text-dark">{{ detalle.elemento.estado }}</span>
+                                    {% elif detalle.elemento.estado == 'Baja' %}
+                                        <span class="badge bg-danger">{{ detalle.elemento.estado }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ detalle.elemento.estado }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if detalle.observaciones_elemento %}
+                                        {{ detalle.observaciones_elemento|truncatewords:10 }}
+                                    {% else %}
+                                        <span class="text-muted">Sin observaciones</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    No hay elementos asociados a este movimiento.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

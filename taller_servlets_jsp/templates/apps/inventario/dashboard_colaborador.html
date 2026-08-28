@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Panel - Talento ECL{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    
+    <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn" style="background: linear-gradient(135deg, #0b71b1 0%, #3b82f6 100%); border-radius: 1rem;">
+        <div class="card-body p-4 d-flex align-items-center justify-content-between">
+            <div class="text-white">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-person-badge fs-2 me-3"></i>
+                    <h2 class="mb-0 fw-bold">Hola, {{ request.user.first_name|default:request.user.username }}</h2>
+                </div>
+                <p class="mb-0 opacity-75">Bienvenido a tu panel de control personal de inventario.</p>
+            </div>
+            <div class="d-none d-md-block text-white text-end">
+                <span class="badge bg-white bg-opacity-25 rounded-pill px-3 py-2 border border-white border-opacity-50">
+                    <i class="bi bi-shield-lock me-1"></i> Rol: Colaborador
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100 animate__animated animate__fadeInUp" style="border-radius: 1rem; border: none; border-left: 5px solid #28a745;">
+                    <div class="card-body p-4 text-center">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-box-seam fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">{{ total_elementos_propios }}</h3>
+                    <p class="text-muted small text-uppercase fw-bold mb-3">Elementos bajo tu cargo</p>
+                    <a href="#mis-elementos" class="btn btn-outline-success btn-sm rounded-pill px-4">Ver mis equipos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 animate__animated animate__fadeInUp" style="border-radius: 1rem; border-left: 5px solid #ef4444 !important;" style="animation-delay: 0.1s;">
+                <div class="card-body p-4 text-center">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-pen fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1 text-danger">{{ total_pendientes }}</h3>
+                    <p class="text-muted small text-uppercase fw-bold mb-3">Firmas pendientes</p>
+                    <a href="{% url 'inventario:mis_documentos' %}" class="btn btn-danger btn-sm rounded-pill px-4 shadow-sm">Firmar ahora</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12 col-lg-4">
+            <div class="card shadow-sm h-100 animate__animated animate__fadeInUp" style="border-radius: 1rem; border: none; border-left: 5px solid #0dcaf0;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-4 border-bottom pb-2"><i class="bi bi-clock-history me-2"></i>Actividad Reciente</h6>
+                    {% if movimientos_propios %}
+                        <div class="timeline-compact">
+                            {% for mov in movimientos_propios|slice:":3" %}
+                            <div class="d-flex mb-3">
+                                <div class="me-3">
+                                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-arrow-left-right"></i></span>
+                                </div>
+                                <div>
+                                    <p class="mb-0 small fw-bold text-dark">{{ mov.get_tipo_movimiento_display }}</p>
+                                    <small class="text-muted">{{ mov.fecha_movimiento|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted small text-center my-4">No hay movimientos recientes.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mis-elementos" class="mt-5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0 text-dark">Mis Elementos Asignados</h5>
+            <span class="badge bg-light text-dark border rounded-pill">{{ total_elementos_propios }} equipos</span>
+        </div>
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 1rem;">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0" style="font-size: 0.85rem;">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 text-muted small text-uppercase">Equipo</th>
+                            <th class="text-muted small text-uppercase">Categoría</th>
+                            <th class="text-muted small text-uppercase">Marca / Modelo</th>
+                            <th class="text-muted small text-uppercase">Serial</th>
+                            <th class="pe-4 text-center text-muted small text-uppercase">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for elemento in elementos_propios %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-3">
+                                        <i class="bi bi-laptop"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ elemento.nombre }}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-secondary bg-opacity-10 text-secondary">{{ elemento.categoria.nombre }}</span></td>
+                            <td>{{ elemento.marca }} / {{ elemento.modelo }}</td>
+                            <td><code>{{ elemento.serial|default:"S/N" }}</code></td>
+                            <td class="pe-4 text-center">
+                                <a href="{% url 'inventario:elemento_detalle' elemento.id %}" class="btn btn-light btn-sm border shadow-sm">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No tienes equipos asignados a tu nombre.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
